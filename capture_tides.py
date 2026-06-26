@@ -22,11 +22,11 @@ async def capture_and_process_tides():
         
         # 🎯 DYNAMIC SEARCH: Hunt for the main tide table section header
         # This looks for the text heading on the page containing "Tide Table"
-        heading_locator = page.get_by_role("heading", name="Myrtle Beach Tide Table", exact=False)
+        heading_locator = page.get_by_role("heading", name="Tide chart for Myrtle Beach", exact=False)
         
         # Fallback to a broader heading if the location name text varies slightly
         if not await heading_locator.is_visible():
-            heading_locator = page.get_by_role("heading", name="Tide Table", exact=False)
+            heading_locator = page.get_by_role("heading", name="Tide chart", exact=False)
 
         temp_color_img = "temp_color.png"
 
