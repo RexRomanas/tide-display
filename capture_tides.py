@@ -20,20 +20,37 @@ async def capture_and_process_tides():
         # Inject CSS to hide unwanted side elements for a cleaner E-ink view
         await page.add_style_tag(content="header, footer, nav, .ads { display: none !important; }")
         
-        # Target the specific container holding the graphical charts and weather info
-        # Note: If the website layout changes, you may need to update this selector
-        target_selector = ".location-tides-and-weather"
-        chart_element = await page.query_selector(target_selector)
-        temp_color_img = "temp_color.png"
+        # 🎯 DYNAMIC SEARCH: Hunt for the main tide table section header
+        # This looks for the text heading on the page containing "Tide Table"
+        heading_locator = page.get_by_role("heading", name="Myrtle Beach Tide Table", exact=False)
         
-        if chart_element:
-            print(f"Isolated '{target_selector}'. Snapping cropped image subset...")
-            # Take a crisp screenshot of ONLY this specific data block
-            await chart_element.screenshot(path=temp_color_img)
+        # Fallback to a broader heading if the location name text varies slightly
+        if not await heading_locator.is_visible():
+            heading_locator = page.get_by_role("heading", name="Tide Table", exact=False)
+
+        temp_color_img = "temp_color.png"
+
+        if await heading_locator.is_visible():
+            print("Found the target text header! Locating surrounding container layout...")
+            
+            # Find the parent layout container box holding the charts below that heading
+            target_element = heading_locator.locator("xpath=./ancestor::section[1]")
+            if not await target_element.is_visible():
+                # Alternative fallback to a generic section block if layout changes slightly
+                target_element = heading_locator.locator("xpath=..")
+            
+            # Force the browser to scroll smoothly straight to this calculated element
+            await target_element.scroll_into_view_if_needed()
+            await page.wait_for_timeout(1500) # Wait for graph animations to stabilize
+            
+            # Snap the image using the element's live bounding dimensions
+            await target_element.screenshot(path=temp_color_img)
+            print("Successfully captured the live dynamic layout area!")
+            
         else:
-            print(f"Warning: Selector '{target_selector}' not found. Defaulting to standard panel clip.")
-            # Fallback: Clip a bounding box manually if the structure shifts
-            await page.screenshot(path=temp_color_img, clip={"x": 50, "y": 150, "width": 900, "height": 600})
+            print("Warning: Dynamic header not found. Falling back to default center screen crop.")
+            # Safety fallback crop if the text itself vanishes entirely
+            await page.screenshot(path=temp_color_img, clip={"x": 150, "y": 450, "width": 1140, "height": 700})
             
         await browser.close()
 
