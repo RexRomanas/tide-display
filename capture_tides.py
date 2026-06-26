@@ -9,7 +9,7 @@ async def capture_and_process_tides():
         browser = await p.chromium.launch(headless=True)
         
         # Lock viewport tightly to the XIAO 7.5" 800x480 resolution ratio
-        context = await browser.new_context(viewport={"width": 800, "height": 480})
+        context = await browser.new_context(viewport={"width": 1440, "height": 900})
         page = await context.new_page()
         
         # Navigate to the target page
@@ -22,15 +22,18 @@ async def capture_and_process_tides():
         
         # Target the specific container holding the graphical charts and weather info
         # Note: If the website layout changes, you may need to update this selector
-        chart_element = await page.query_selector("main")
+        target_selector = ".location-tides-and-weather"
+        chart_element = await page.query_selector(target_selector)
         temp_color_img = "temp_color.png"
         
         if chart_element:
-            # Take a cropped screenshot of just the data container
+            print(f"Isolated '{target_selector}'. Snapping cropped image subset...")
+            # Take a crisp screenshot of ONLY this specific data block
             await chart_element.screenshot(path=temp_color_img)
         else:
-            # Fallback: take a screenshot of the whole page if the specific element isn't isolated
-            await page.screenshot(path=temp_color_img)
+            print(f"Warning: Selector '{target_selector}' not found. Defaulting to standard panel clip.")
+            # Fallback: Clip a bounding box manually if the structure shifts
+            await page.screenshot(path=temp_color_img, clip={"x": 50, "y": 150, "width": 900, "height": 600})
             
         await browser.close()
 
