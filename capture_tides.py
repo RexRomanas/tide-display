@@ -50,7 +50,7 @@ async def capture_and_process_tides():
         else:
             print("Warning: Dynamic header not found. Falling back to default center screen crop.")
             # Safety fallback crop if the text itself vanishes entirely
-            await page.screenshot(path=temp_color_img, clip={"x": 150, "y": 450, "width": 1140, "height": 700})
+            await page.screenshot(path=temp_color_img, clip={"x": 150, "y": 450, "width": 700, "height": 1140})
             
         await browser.close()
 
@@ -58,7 +58,7 @@ async def capture_and_process_tides():
     print("Processing image for 1-bit monochrome display...")
     with Image.open(temp_color_img) as img:
         # Resize explicitly to the hardware specifications
-        img_resized = img.resize((800, 480), Image.Resampling.LANCZOS)
+        img_resized = img.resize((480, 800), Image.Resampling.LANCZOS)
         
         # Convert to pure Black & White ('1') using Floyd-Steinberg dithering
         # This prevents text from washing out and makes graphs crisp
