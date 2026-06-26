@@ -1,0 +1,53 @@
+name: Auto Update Tide Image
+
+on:
+  schedule:
+    # Runs automatically every 4 hours (adjust cron timings as you see fit)
+    - cron: '0 */4 * * *'
+  workflow_dispatch: # Allows you to manually click a button to test it instantly
+
+permissions:
+  contents: write # Grants GitHub permission to save the image back to your repo
+
+jobs:
+  build-and-scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Clone your code onto the GitHub server
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # 2. Deploy Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 3. Install packages listed in your requirements.txt
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # 4. Critical: Download Chromium and the Linux display packages it depends on
+    - name: Install Playwright Web Browser Dependencies
+      run: npx playwright install --with-deps chromium
+
+    # 5. Run your script to scrape the web and dither the image
+    - name: Run Tide Scraper Script
+      run: python capture_tides.py
+
+    # 6. Commit the newly generated image file back into your project main branch
+    - name: Commit and Push Updated Image
+      run: |
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.user.email "actions@github.com"
+        git add xiao_tides_800x480.png
+        # Check if the file actually changed to avoid unnecessary error loops
+        if git diff-index --quiet HEAD; then
+          echo "No changes detected in the tide data layout."
+        else
+          git commit -m "Automated update of tide ePaper image"
+          git push
+        fi

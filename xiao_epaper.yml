@@ -1,0 +1,48 @@
+esphome:
+  name: xiao-tide-display
+
+esp32:
+  board: seeed_xiao_esp32s3 # Adjust if using the ESP32-C3 or original ESP32 variant
+  framework:
+    type: arduino
+
+wifi:
+  ssid: "YOUR_HOME_WIFI_NAME"
+  password: "YOUR_WIFI_PASSWORD"
+
+# Enable the HTTP client so the chip can download the image file
+http_request:
+  user_agent: esphome/device
+  timeout: 10s
+
+# Define the image container that maps to your github
+image:
+  - file: "https://githubusercontent.com"
+    id: tide_image
+    type: BINARY
+    resize: 800x480
+
+# Configure the SPI pins connecting your XIAO to the 7.5" ePaper driver board
+spi:
+  clk_pin: GPIO8  # Match these to your physical wiring setup
+  mosi_pin: GPIO10
+
+display:
+  - platform: waveshare_epaper
+    id: my_display
+    cs_pin: GPIO9
+    dc_pin: GPIO3
+    reset_pin: GPIO2
+    busy_pin: GPIO1
+    model: 7.5in-bv3 # Change based on your exact panel hardware generation
+    rotation: 0°
+    
+    # This loop runs whenever the display component updates
+    lambda: |-
+      it.image(0, 0, id(tide_image));
+
+# Update schedule loop
+interval:
+  - interval: 30min
+    then:
+      - component.update: my_display
