@@ -30,9 +30,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # 4. Critical: Download Chromium and the Linux display packages it depends on
+    # 4. Corrected: Use the Python module to install chromium and Linux system dependencies
+    # Change "npx playwright install --with-deps chromium" to the line below:
     - name: Install Playwright Web Browser Dependencies
-      run: npx playwright install --with-deps chromium
+      run: playwright install --with-deps chromium
 
     # 5. Run your script to scrape the web and dither the image
     - name: Run Tide Scraper Script
