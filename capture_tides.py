@@ -9,7 +9,7 @@ async def capture_and_process_tides():
         browser = await p.chromium.launch(headless=True)
         
         # Lock viewport tightly to the XIAO 7.5" 800x480 resolution ratio
-        context = await browser.new_browser_context(viewport={"width": 800, "height": 480})
+        context = await browser.new_context(viewport={"width": 800, "height": 480})
         page = await context.new_page()
         
         # Navigate to the target page
